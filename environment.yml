@@ -1,4 +1,4 @@
-name: parcels
+name: mitgcm-ensemble
 channels:
   - conda-forge
 dependencies: #! Keep in sync with [tool.pixi.dependencies] in pyproject.toml
