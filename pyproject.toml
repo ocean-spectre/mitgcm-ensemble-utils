@@ -1,0 +1,183 @@
+[build-system]
+requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spectre_pp"
+description = "Framework for post processing ensemble MITgcm simulations"
+readme = "README.md"
+dynamic = ["version"]
+authors = [{name = "Spectre Ocean team"}]
+requires-python = ">=3.11,<3.13"
+license = {file = "LICENSE.md"}
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Operating System :: OS Independent",
+  "Topic :: Scientific/Engineering",
+  "Intended Audience :: Science/Research",
+]
+dependencies = [
+  "cftime",
+  "numpy",
+  "dask",
+  "psutil",
+  "netCDF4",
+  "zarr",
+  "pytest",
+  "scipy",
+  "xarray",
+  "xgcm",
+  "xmitgcm",
+]
+
+[project.urls]
+homepage = "https://ocean-spectre.fluidnumerics.com"
+repository = "https://github.com/ocean-spectre/spectre_pp"
+Tracker = "https://github.com/ocean-spectre/spectre_pp/issues"
+
+[tool.pixi.project]
+channels = ["conda-forge"]
+name = "spectre_pp-dev"
+platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+
+[tool.pixi.tasks]
+tests = "pytest"
+tests-notebooks = "pytest -v -s --nbval-lax -k 'not documentation and not tutorial_periodic_boundaries and not tutorial_timevaryingdepthdimensions and not tutorial_particle_field_interaction and not tutorial_croco_3D and not tutorial_nemo_3D and not tutorial_analyticaladvection' docs/examples" # TODO v4: Mirror ci.yml for notebooks being run
+coverage = "coverage run -m pytest && coverage html"
+typing = "mypy spectre_pp"
+pre-commit = "pre-commit run --all-files"
+docs = 'sphinx-autobuild --ignore "*.zip" docs docs/_build'
+
+[tool.pixi.dependencies] #! Keep in sync with environment.yml
+python = ">=3.11"
+
+# Notebooks
+trajan = "*"
+
+# Testing
+nbval = "*"
+pytest = "*"
+hypothesis = "*"
+pytest-html = "*"
+coverage = "*"
+
+# Typing
+mypy = "*"
+lxml = "*" # in CI
+types-tqdm = "*"
+types-psutil = "*"
+
+# Linting
+pre_commit = "*"
+
+# Docs
+ipython = "*"
+numpydoc = "*"
+nbsphinx = "*"
+sphinx = "*"
+pandoc = "*"
+pydata-sphinx-theme = "*"
+sphinx-autobuild = "*"
+myst-parser = "*"
+sphinxcontrib-mermaid = "*"
+
+[tool.pixi.pypi-dependencies]
+spectre_pp = { path = ".", editable = true }
+
+[tool.setuptools]
+packages = ["spectre_pp"]
+
+[tool.setuptools.package-data]
+spectre_pp = ["spectre_pp/include/*"]
+
+[tool.setuptools_scm]
+write_to = "spectre_pp/_version_setup.py"
+local_scheme = "no-local-version"
+
+[tool.pytest.ini_options]
+addopts = ["--strict-config", "--strict-markers"]
+xfail_strict = true
+testpaths = ["tests", "docs/examples"]
+python_files = ["test_*.py", "example_*.py", "*tutorial*"]
+minversion = "7"
+markers = [ # can be skipped by doing `pytest -m "not slow"` etc.
+  "flaky: flaky tests",
+  "slow: slow tests",
+]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "D",  # pydocstyle
+    "E",  # Error
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # Bugbear
+    "UP", # pyupgrade
+    "LOG", # logging
+    "ICN", # import conventions
+    "G", # logging-format
+    "RUF", # ruff
+    "ISC001", # single-line-implicit-string-concatenation
+    "TID", # flake8-tidy-imports
+]
+
+ignore = [
+    # line too long (82 > 79 characters)
+    "E501",
+    # ‘from module import *’ used; unable to detect undefined names
+    "F403",
+    # Mutable class attributes should be annotated with `typing.ClassVar`
+    "RUF012",
+    # Consider `(slice(2), *block)` instead of concatenation
+    "RUF005",
+    # Prefer `next(iter(variable.items()))` over single element slice
+    "RUF015",
+    # Use `X | Y` in `isinstance` (see https://github.com/home-assistant/core/issues/123850)
+    "UP038",
+
+    # TODO: ignore for now (requires more work). Remove ignore once fixed
+    # Missing docstring in public module
+    "D100",
+    # Missing docstring in public class
+    "D101",
+    # Missing docstring in public method
+    "D102",
+    # Missing docstring in public function
+    "D103",
+    # Missing docstring in public package
+    "D104",
+    # Missing docstring in magic method
+    "D105",
+    # Missing docstring in __init__
+    "D400",
+    # First line should be in imperative mood (requires writing of summaries)
+    "D401",
+    # First word of the docstring should not be `This`
+    "D404",
+    # 1 blank line required between summary line and description (requires writing of summaries)
+    "D205",
+    # do not use bare except, specify exception instead
+    "E722",
+    "F811",
+
+
+    # TODO: These bugbear issues are to be resolved
+    "B011", # Do not `assert False`
+    "B016", # Cannot raise a literal. Did you intend to return it or raise an Exception?
+    "B904", # Within an `except` clause, raise exceptions
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.isort]
+known-first-party = ["spectre_pp"]
+
+
+ignore_missing_imports = true
